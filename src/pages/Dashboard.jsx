@@ -3,6 +3,7 @@ import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts"; // 📊
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -22,6 +23,9 @@ const Dashboard = () => {
 
   const [editingGoalId, setEditingGoalId] = useState(null);
   const [editForm, setEditForm] = useState({});
+
+  // Colors for chart
+  const COLORS = ["#f87171", "#facc15", "#4ade80"]; // red, yellow, green
 
   // Real-time clock
   useEffect(() => {
@@ -98,8 +102,24 @@ const Dashboard = () => {
     }
   };
 
+  // 📊 Progress data for chart
+  const progressData = [
+    { name: "Not Started", value: goals.filter((g) => g.progress === "not started").length },
+    { name: "In Progress", value: goals.filter((g) => g.progress === "in-progress").length },
+    { name: "Completed", value: goals.filter((g) => g.progress === "completed").length },
+  ];
+
   return (
-    <div className="p-0">
+    <div className="relative min-h-screen flex flex-col">
+      
+{/* Background Image */}
+      <img
+        src="./assets/skills-bg.jpg" // put your image in public/assets folder
+        alt="Dashboard background"
+        className="absolute inset-0 w-full h-full object-cover opacity-20 -z-10"
+      />
+
+
       {/* Navbar */}
       <nav className="flex justify-between items-center bg-blue-600 text-white px-6 py-4 shadow">
         <h1 className="text-xl font-bold">Welcome, {user?.name}</h1>
@@ -131,7 +151,33 @@ const Dashboard = () => {
         </div>
       )}
 
-      <div className="p-6 max-w-5xl mx-auto">
+      <div className="p-6 max-w-6xl mx-auto">
+        {/* 📊 Progress Chart */}
+        {goals.length > 0 && (
+          <div className="bg-white p-6 rounded shadow-md mb-8">
+            <h2 className="text-xl font-semibold mb-4">Skill Progress Overview</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={progressData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  label
+                >
+                  {progressData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
         {/* Add Goal Form */}
         <form onSubmit={addGoal} className="bg-white p-6 rounded shadow-md mb-8 space-y-4">
           <h2 className="text-xl font-semibold">Add New Goal</h2>
